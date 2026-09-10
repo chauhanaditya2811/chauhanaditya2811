@@ -4,7 +4,7 @@
   <img alt="chauhanaditya2811's GitHub profile" src="dark_mode.svg" />
 </picture>
 
-## Hi there 👋
+
 
 <!--
 **chauhanaditya2811/chauhanaditya2811** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
