@@ -1,0 +1,55 @@
+name: Add gh-ascii profile card
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  add-card:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Download both themes
+        run: |
+          curl -fL --retry 3 --retry-delay 5 \
+            "https://gh.crafter.run/chauhanaditya2811?theme=dark" \
+            -o dark_mode.svg
+          curl -fL --retry 3 --retry-delay 5 \
+            "https://gh.crafter.run/chauhanaditya2811?theme=light" \
+            -o light_mode.svg
+
+      - name: Validate SVGs
+        run: |
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          for path in ("dark_mode.svg", "light_mode.svg"):
+              root = ET.parse(path).getroot()
+              if root.tag.split('}')[-1] != 'svg':
+                  raise SystemExit(f"{path} is not an SVG")
+              print(f"Validated {path}: {root.attrib.get('width')}x{root.attrib.get('height')}")
+          PY
+
+      - name: Add card to README
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path("README.md")
+          content = p.read_text(encoding="utf-8") if p.exists() else ""
+          card = '''<picture>\n  <source media="(prefers-color-scheme: dark)" srcset="dark_mode.svg" />\n  <source media="(prefers-color-scheme: light)" srcset="light_mode.svg" />\n  <img alt="chauhanaditya2811's GitHub profile" src="dark_mode.svg" />\n</picture>\n'''
+          if not content.lstrip().startswith("<picture>"):
+              p.write_text(card + "\n" + content, encoding="utf-8")
+          PY
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dark_mode.svg light_mode.svg README.md
+          git commit -m "feat: add gh-ascii profile card"
+          git push
